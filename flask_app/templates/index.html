@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Keylit - KCI 논문 검색</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f8fc;
+      color: #2e2e2e;
+    }
+
+    header {
+      background-color: #7c4dff;
+      color: white;
+      padding: 20px 40px;
+      font-size: 28px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+
+    #menu-icon {
+      font-size: 24px;
+      cursor: pointer;
+      margin-right: 20px;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100%;
+      background-color: #5e35b1;
+      color: white;
+      padding: 60px 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    #sidebar a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin: 20px 0;
+      font-size: 18px;
+    }
+
+    #sidebar.active {
+      left: 0;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      color: #7c4dff;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      width: 60%;
+      max-width: 600px;
+      padding: 14px 20px;
+      font-size: 16px;
+      border: 2px solid #7c4dff;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .keywords {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .keywords span {
+      background-color: #e8dcff;
+      color: #5e35b1;
+      padding: 6px 10px;
+      margin: 4px;
+      border-radius: 14px;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    #results {
+      max-width: 800px;
+      margin-top: 40px;
+    }
+
+    footer {
+      margin-top: 80px;
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    button {
+      margin-top: 8px;
+      background-color: #7c4dff;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #5e35b1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div id="menu-icon" onclick="toggleSidebar()">☰</div>
+    Keylit
+  </header>
+
+  <div id="sidebar">
+    <a href="#" onclick="goHome()">홈</a>
+    <a href="#" onclick="showFavorites()">즐겨찾기</a>
+    <a href="#" onclick="showRecent()">최근 검색</a>
+  </div>
+
+  <main>
+    <h1>논문을 검색해보세요 🔍</h1>
+    <input id="searchInput" type="text" placeholder="키워드 또는 논문 제목을 입력하세요" onkeydown="if(event.key==='Enter') searchKCIPapers()"/>
+
+    <div class="keywords">
+      추천 키워드:
+      <span onclick="quickSearch('딥러닝')">딥러닝</span>
+      <span onclick="quickSearch('자연어처리')">자연어처리</span>
+      <span onclick="quickSearch('강화학습')">강화학습</span>
+      <span onclick="quickSearch('데이터마이닝')">데이터마이닝</span>
+      <span onclick="quickSearch('AI')">AI</span>
+    </div>
+  </main>
+
+  <footer>© 2025 Keylit</footer>
+
+  <script>
+    const favorites = [];
+    const recentQueries = [];
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function clearResults() {
+      const old = document.getElementById('results');
+      if (old) old.remove();
+    }
+
+    function displayResults(papers) {
+      clearResults();
+      const container = document.createElement('div');
+      container.id = 'results';
+
+      papers.forEach(paper => {
+        const item = document.createElement('div');
+        item.style.borderBottom = '1px solid #ccc';
+        item.style.padding = '10px 0';
+        item.innerHTML = `
+          <h3 style="color:#5e35b1">${paper.title}</h3>
+          <p><strong>저자:</strong> ${paper.author}</p>
+          <p><strong>초록:</strong><br>${paper.abstract}</p>
+          <a href="${paper.link}" target="_blank">논문 링크</a><br>
+          <button onclick='addFavorite(${JSON.stringify(paper)})'>⭐ 즐겨찾기</button>
+        `;
+        container.appendChild(item);
+      });
+
+      document.querySelector('main').appendChild(container);
+    }
+
+    function addFavorite(paper) {
+      favorites.push(paper);
+      alert("즐겨찾기에 추가됨!");
+    }
+
+    function goHome() {
+      location.reload();
+    }
+
+    function showFavorites() {
+      clearResults();
+      const container = document.createElement('div');
+      container.id = 'results';
+      container.innerHTML = `<h3>즐겨찾기</h3><ul>${favorites.map(f => `<li><a href="${f.link}" target="_blank">${f.title}</a></li>`).join('')}</ul>`;
+      document.querySelector('main').appendChild(container);
+    }
+
+    function showRecent() {
+      clearResults();
+      const container = document.createElement('div');
+      container.id = 'results';
+      container.innerHTML = `<h3>최근 검색어</h3><ul>${recentQueries.map(q => `<li>${q}</li>`).join('')}</ul>`;
+      document.querySelector('main').appendChild(container);
+    }
+
+    function quickSearch(keyword) {
+      document.getElementById('searchInput').value = keyword;
+      searchKCIPapers();
+    }
+
+    async function searchKCIPapers() {
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) return alert("검색어를 입력해주세요.");
+      recentQueries.unshift(query);
+      if (recentQueries.length > 10) recentQueries.pop();
+
+      const API_KEY = "27502279"; // ← 여기에 실제 인증키 입력
+      const url = `https://api.kci.go.kr/openapi/service/rest/ArticleInfoService/getArticleList?ServiceKey=${API_KEY}&searchKeyword=${encodeURIComponent(query)}&numOfRows=10&pageNo=1`;
+
+      try {
+        const response = await fetch(url);
+        const xml = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xml, "text/xml");
+        const items = xmlDoc.getElementsByTagName("item");
+
+        const papers = Array.from(items).map(item => ({
+          title: item.getElementsByTagName("title")[0]?.textContent || "제목 없음",
+          author: item.getElementsByTagName("author")[0]?.textContent || "저자 없음",
+          abstract: item.getElementsByTagName("abstract")[0]?.textContent || "초록 없음",
+          link: item.getElementsByTagName("link")[0]?.textContent || "#"
+        }));
+
+        displayResults(papers);
+      } catch (error) {
+        alert("API 요청 실패: 인증키 오류나 서버 문제일 수 있어요.");
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
