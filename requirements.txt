@@ -6,3 +6,5 @@ konlpy
 joblib
 tqdm
 requests
+streamlit
+Pillow
